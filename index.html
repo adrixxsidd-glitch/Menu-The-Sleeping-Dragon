@@ -2,89 +2,126 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Menú Interactivo PDF</title>
+  <title>The Sleeping Dragon 🐉 - Menú Interactivo PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.547/pdf.min.js"></script>
   <style>
     body {
       background: #222;
       color: white;
       font-family: Arial, sans-serif;
+      margin: 0;
       display: flex;
       flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
+      padding: 15px 20px;
+      background: #333;
+    }
+
+    header h1 {
       margin: 0;
-      padding: 20px;
+      font-size: 28px;
+      color: #FFD700; /* dorado */
     }
-    h1 {
-      margin-bottom: 20px;
-    }
+
     select, button {
       font-size: 16px;
       padding: 8px 12px;
-      margin: 5px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
     }
-    #pdf-viewer {
-      border: 3px solid #444;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 900px;
-      height: 600px;
-      background: #fff;
-      overflow: auto;
-      margin-bottom: 10px;
-    }
-    canvas {
-      display: block;
-      margin: 0 auto 10px;
-    }
-    #thumbnails {
+
+    main {
       display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      margin-top: 10px;
-      width: 80%;
-      max-width: 900px;
+      flex: 1;
+      overflow: hidden;
     }
+
+    #thumbnails {
+      width: 150px;
+      background: #333;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
     #thumbnails canvas {
-      width: 100px;
+      width: 100%;
       cursor: pointer;
       border: 2px solid transparent;
+      border-radius: 4px;
     }
+
     #thumbnails canvas.selected {
       border-color: #4CAF50;
+    }
+
+    #pdf-viewer {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: auto;
+      background: #fff;
+      padding: 20px;
+    }
+
+    #pdf-canvas {
+      border-radius: 8px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      background: #333;
+    }
+
+    button {
+      background: #4CAF50;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>Menú Interactivo</h1>
-
-  <div class="controls">
+  <header>
+    <h1>The Sleeping Dragon 🐉</h1>
     <select id="pdf-selector">
       <option value="page-01.pdf">Menú Sección 1</option>
       <option value="page-02.pdf">Menú Sección 2</option>
       <option value="page-03.pdf">Menú Sección 3</option>
       <option value="page-04.pdf">Menú Sección 4</option>
     </select>
+  </header>
+
+  <main>
+    <div id="thumbnails"></div>
+    <div id="pdf-viewer">
+      <canvas id="pdf-canvas"></canvas>
+    </div>
+  </main>
+
+  <div class="nav-buttons">
     <button id="prev">⬅ Anterior</button>
     <button id="next">Siguiente ➡</button>
   </div>
-
-  <div id="pdf-viewer">
-    <canvas id="pdf-canvas"></canvas>
-  </div>
-
-  <div id="thumbnails"></div>
 
   <script>
     const pdfFiles = ["page-01.pdf","page-02.pdf","page-03.pdf","page-04.pdf"];
     let currentPDF = 0;
     let pdfDoc = null;
     let currentPage = 1;
-    let canvas = document.getElementById("pdf-canvas");
-    let ctx = canvas.getContext("2d");
+    const canvas = document.getElementById("pdf-canvas");
+    const ctx = canvas.getContext("2d");
 
     async function loadPDF(file) {
       pdfDoc = await pdfjsLib.getDocument(file).promise;
@@ -109,7 +146,7 @@
         const thumbCanvas = document.createElement("canvas");
         const thumbCtx = thumbCanvas.getContext("2d");
         const page = await pdfDoc.getPage(i);
-        const viewport = page.getViewport({scale: 0.3});
+        const viewport = page.getViewport({scale: 0.2});
         thumbCanvas.width = viewport.width;
         thumbCanvas.height = viewport.height;
         await page.render({canvasContext: thumbCtx, viewport: viewport}).promise;
@@ -146,7 +183,6 @@
       loadPDF(file);
     });
 
-    // Cargar el primer PDF por defecto
     loadPDF(pdfFiles[currentPDF]);
   </script>
 </body>
