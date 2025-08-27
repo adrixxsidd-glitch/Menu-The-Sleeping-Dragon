@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Menú Interactivo PDF</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.547/pdf.min.js"></script>
+  <style>
+    body {
+      background: #222;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    select, button {
+      font-size: 16px;
+      padding: 8px 12px;
+      margin: 5px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+    #pdf-viewer {
+      border: 3px solid #444;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 900px;
+      height: 600px;
+      background: #fff;
+      overflow: auto;
+      margin-bottom: 10px;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto 10px;
+    }
+    #thumbnails {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      margin-top: 10px;
+      width: 80%;
+      max-width: 900px;
+    }
+    #thumbnails canvas {
+      width: 100px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    #thumbnails canvas.selected {
+      border-color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <h1>Menú Interactivo</h1>
+
+  <div class="controls">
+    <select id="pdf-selector">
+      <option value="page-01.pdf">Menú Sección 1</option>
+      <option value="page-02.pdf">Menú Sección 2</option>
+      <option value="page-03.pdf">Menú Sección 3</option>
+      <option value="page-04.pdf">Menú Sección 4</option>
+    </select>
+    <button id="prev">⬅ Anterior</button>
+    <button id="next">Siguiente ➡</button>
+  </div>
+
+  <div id="pdf-viewer">
+    <canvas id="pdf-canvas"></canvas>
+  </div>
+
+  <div id="thumbnails"></div>
+
+  <script>
+    const pdfFiles = ["page-01.pdf","page-02.pdf","page-03.pdf","page-04.pdf"];
+    let currentPDF = 0;
+    let pdfDoc = null;
+    let currentPage = 1;
+    let canvas = document.getElementById("pdf-canvas");
+    let ctx = canvas.getContext("2d");
+
+    async function loadPDF(file) {
+      pdfDoc = await pdfjsLib.getDocument(file).promise;
+      currentPage = 1;
+      renderPage(currentPage);
+      renderThumbnails();
+    }
+
+    async function renderPage(num) {
+      const page = await pdfDoc.getPage(num);
+      const viewport = page.getViewport({scale: 1.5});
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({canvasContext: ctx, viewport: viewport}).promise;
+      highlightThumbnail(num);
+    }
+
+    async function renderThumbnails() {
+      const thumbsContainer = document.getElementById("thumbnails");
+      thumbsContainer.innerHTML = "";
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const thumbCanvas = document.createElement("canvas");
+        const thumbCtx = thumbCanvas.getContext("2d");
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({scale: 0.3});
+        thumbCanvas.width = viewport.width;
+        thumbCanvas.height = viewport.height;
+        await page.render({canvasContext: thumbCtx, viewport: viewport}).promise;
+        thumbCanvas.addEventListener("click", () => {
+          currentPage = i;
+          renderPage(currentPage);
+        });
+        thumbsContainer.appendChild(thumbCanvas);
+      }
+    }
+
+    function highlightThumbnail(num) {
+      const thumbs = document.querySelectorAll("#thumbnails canvas");
+      thumbs.forEach((c, i) => c.classList.toggle("selected", i + 1 === num));
+    }
+
+    document.getElementById("prev").addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage(currentPage);
+      }
+    });
+
+    document.getElementById("next").addEventListener("click", () => {
+      if (currentPage < pdfDoc.numPages) {
+        currentPage++;
+        renderPage(currentPage);
+      }
+    });
+
+    document.getElementById("pdf-selector").addEventListener("change", (e) => {
+      const file = e.target.value;
+      currentPDF = pdfFiles.indexOf(file);
+      loadPDF(file);
+    });
+
+    // Cargar el primer PDF por defecto
+    loadPDF(pdfFiles[currentPDF]);
+  </script>
+</body>
+</html>
