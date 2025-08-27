@@ -43,7 +43,7 @@
     ];
 
     const root = document.getElementById("book");
-    const pageFlip = new St.PageFlip(root, { width:800, height:1132, size:"stretch", showCover:true });
+    const pageFlip = new PageFlip(root, { width:800, height:1132, size:"stretch", showCover:true });
     pageFlip.loadFromImages(archivos);
 
     const counter = document.getElementById("counter");
